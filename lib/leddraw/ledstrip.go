@@ -1,7 +1,6 @@
 package leddraw
 
 import (
-	"context"
 	"image/color"
 
 	"libdb.so/acm-christmas/internal/xcolor"
@@ -28,10 +27,4 @@ func (s LEDStrip) Clear() {
 	for i := range s {
 		s[i] = xcolor.RGB{}
 	}
-}
-
-// LEDStripDrawer describes an instance that can render a given LED strip.
-type LEDStripDrawer interface {
-	// DrawLEDStrip draws the given LED strip.
-	DrawLEDStrip(context.Context, LEDStrip) error
 }

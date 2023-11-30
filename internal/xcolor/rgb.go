@@ -35,6 +35,15 @@ func RGBFromColor(c color.Color) RGB {
 	}
 }
 
+// RGBFromUint converts an integer to RGB.
+func RGBFromUint(u uint32) RGB {
+	return RGB{
+		R: uint8(u >> 16),
+		G: uint8(u >> 8),
+		B: uint8(u),
+	}
+}
+
 // RGBA implements the color.Color interface.
 func (c RGB) RGBA() (r, g, b, a uint32) {
 	r = uint32(c.R)
@@ -45,4 +54,9 @@ func (c RGB) RGBA() (r, g, b, a uint32) {
 	b |= b << 8
 	a = 0xFFFF
 	return
+}
+
+// ToUint converts the RGB color to an integer.
+func (c RGB) ToUint() uint32 {
+	return uint32(c.R)<<16 | uint32(c.G)<<8 | uint32(c.B)
 }

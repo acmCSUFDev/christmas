@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net"
 	"testing"
 
 	"github.com/gobwas/ws/wsutil"
@@ -15,22 +16,77 @@ import (
 )
 
 func TestSession(t *testing.T) {
-	conn := startTestSession(t, Config{Secret: "test"})
+	tests := []struct {
+		name   string
+		config Config
+		play   func(t *testing.T, conn io.ReadWriteCloser)
+	}{
+		{
+			name: "invalid secret",
+			play: func(t *testing.T, conn io.ReadWriteCloser) {
+				writeClientMessage(t, conn, &christmaspb.LEDClientMessage{
+					Message: &christmaspb.LEDClientMessage_Authenticate{
+						Authenticate: &christmaspb.AuthenticateRequest{
+							Secret: "bruh moment",
+						},
+					},
+				})
 
-	writeClientMessage(t, conn, &christmaspb.LEDClientMessage{
-		Message: &christmaspb.LEDClientMessage_Authenticate{
-			Authenticate: &christmaspb.AuthenticateRequest{
+				assertMessage(t, conn, &christmaspb.LEDServerMessage{
+					Message: &christmaspb.LEDServerMessage_Authenticate{
+						Authenticate: &christmaspb.AuthenticateResponse{
+							Success: false,
+						},
+					},
+				})
+
+				assertMessage(t, conn, &christmaspb.LEDServerMessage{
+					Error: proto.String("invalid secret"),
+				})
+
+				expectCloseFrame(t, conn)
+			},
+			config: Config{
+				Secret: "test",
+			},
+		},
+		{
+			name: "valid secret",
+			play: func(t *testing.T, conn io.ReadWriteCloser) {
+				writeClientMessage(t, conn, &christmaspb.LEDClientMessage{
+					Message: &christmaspb.LEDClientMessage_Authenticate{
+						Authenticate: &christmaspb.AuthenticateRequest{
+							Secret: "bruh moment",
+						},
+					},
+				})
+
+				assertMessage(t, conn, &christmaspb.LEDServerMessage{
+					Message: &christmaspb.LEDServerMessage_Authenticate{
+						Authenticate: &christmaspb.AuthenticateResponse{
+							Success: true,
+						},
+					},
+				})
+			},
+			config: Config{
 				Secret: "bruh moment",
 			},
 		},
-	})
-	assertEq(t,
-		&christmaspb.LEDServerMessage{Error: proto.String("invalid secret")},
-		readServerMessage(t, conn))
-	expectCloseFrame(t, conn)
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			conn := startTestSession(t, ctx, test.config)
+			test.play(t, conn)
+		})
+	}
 }
 
-func writeClientMessage(t *testing.T, conn combinedPipe, msg *christmaspb.LEDClientMessage) {
+func writeClientMessage(t *testing.T, conn io.ReadWriteCloser, msg *christmaspb.LEDClientMessage) {
 	t.Helper()
 
 	b, err := proto.Marshal(msg)
@@ -42,7 +98,7 @@ func writeClientMessage(t *testing.T, conn combinedPipe, msg *christmaspb.LEDCli
 	}
 }
 
-func readServerMessage(t *testing.T, conn combinedPipe) *christmaspb.LEDServerMessage {
+func readServerMessage(t *testing.T, conn io.ReadWriteCloser) *christmaspb.LEDServerMessage {
 	t.Helper()
 
 	b, err := wsutil.ReadServerBinary(conn)
@@ -58,6 +114,13 @@ func readServerMessage(t *testing.T, conn combinedPipe) *christmaspb.LEDServerMe
 	return msg
 }
 
+func assertMessage(t *testing.T, conn io.ReadWriteCloser, expect *christmaspb.LEDServerMessage) {
+	t.Helper()
+
+	actual := readServerMessage(t, conn)
+	assertEq(t, expect, actual)
+}
+
 func assertEq[T any](t *testing.T, expected, actual T, opts ...cmp.Option) {
 	t.Helper()
 
@@ -67,7 +130,7 @@ func assertEq[T any](t *testing.T, expected, actual T, opts ...cmp.Option) {
 	}
 }
 
-func expectCloseFrame(t *testing.T, conn combinedPipe) {
+func expectCloseFrame(t *testing.T, conn io.ReadWriteCloser) {
 	t.Helper()
 	var closedErr wsutil.ClosedError
 
@@ -83,19 +146,15 @@ func expectCloseFrame(t *testing.T, conn combinedPipe) {
 	// See wsutil/handler.go @ ControlHandler.HandleClose.
 }
 
-func startTestSession(t *testing.T, cfg Config) combinedPipe {
+func startTestSession(t *testing.T, ctx context.Context, cfg Config) io.ReadWriteCloser {
 	t.Helper()
 
-	r1, w1 := io.Pipe()
-	r2, w2 := io.Pipe()
-
-	conn1 := combinedPipe{r1, w2}
-	conn2 := combinedPipe{r2, w1}
+	conn1, conn2 := net.Pipe()
 
 	t.Cleanup(func() {
 		t.Log("closing test session pipes")
-		conn1.wp.Close()
-		conn2.wp.Close()
+		conn1.Close()
+		conn2.Close()
 	})
 
 	logger := slogt.New(t)
@@ -106,7 +165,7 @@ func startTestSession(t *testing.T, cfg Config) combinedPipe {
 		cfg:    cfg,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	errCh := make(chan error, 1)
 
 	t.Cleanup(func() {
@@ -121,22 +180,4 @@ func startTestSession(t *testing.T, cfg Config) combinedPipe {
 	}()
 
 	return conn2
-}
-
-type combinedPipe struct {
-	rp *io.PipeReader
-	wp *io.PipeWriter
-}
-
-func (p combinedPipe) Read(b []byte) (int, error) {
-	return p.rp.Read(b)
-}
-
-func (p combinedPipe) Write(b []byte) (int, error) {
-	return p.wp.Write(b)
-}
-
-func (p combinedPipe) Close() error {
-	p.wp.Close()
-	return p.rp.Close()
 }

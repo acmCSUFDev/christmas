@@ -10,6 +10,8 @@ require (
 	github.com/gobwas/ws v1.3.1
 	github.com/google/go-cmp v0.5.8
 	github.com/joho/godotenv v1.5.1
+	github.com/lmittmann/tint v1.0.3
+	github.com/mattn/go-isatty v0.0.20
 	github.com/neilotoole/slogt v1.1.0
 	github.com/pierrre/imageutil v1.0.0
 	github.com/pkg/errors v0.9.1
@@ -19,6 +21,7 @@ require (
 	golang.org/x/sync v0.1.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/typ.v4 v4.3.0
+	libdb.so/ledctl v0.0.0-20231130111553-25f5f20677f5
 )
 
 require (

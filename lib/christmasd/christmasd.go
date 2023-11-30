@@ -3,13 +3,17 @@ package christmasd
 import (
 	"context"
 	"fmt"
+	"image"
 	"log/slog"
 	"net/http"
 	"sync/atomic"
+	"time"
 
 	"github.com/gobwas/ws"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/typ.v4/sync2"
+	"libdb.so/acm-christmas/internal/xcolor"
+	"libdb.so/acm-christmas/lib/christmas/go/christmaspb"
 )
 
 // Config is the configuration for handling.
@@ -21,6 +25,8 @@ type Config struct {
 
 // ServerOpts are options for a server.
 type ServerOpts struct {
+	// LEDController is the LED controller to use for the server.
+	LEDController LEDController
 	// Logger is the logger to use for the server.
 	Logger *slog.Logger
 	// HTTPUpgrader is the HTTP-to-Websocket upgrader to use for the server.
@@ -53,6 +59,8 @@ func (s *Server) KickAllConnections(reason string) {
 	var err error
 	if reason != "" {
 		err = fmt.Errorf("kicked: %s", reason)
+	} else {
+		err = fmt.Errorf("kicked")
 	}
 
 	s.connections.Range(func(s *Session, ctrl sessionControl) bool {
@@ -92,13 +100,12 @@ func (s *Server) upgrade(w http.ResponseWriter, r *http.Request) (*Session, erro
 		return nil, fmt.Errorf("failed to upgrade HTTP: %w", err)
 	}
 
-	logger := s.opts.Logger.With(
-		"local_addr", wsconn.LocalAddr(),
-		"remote_addr", wsconn.RemoteAddr())
+	logger := s.opts.Logger.With("addr", wsconn.RemoteAddr())
 
 	return &Session{
 		ws:     newWebsocketServer(wsconn, logger),
 		logger: logger,
+		opts:   s.opts,
 		cfg:    *s.cfg.Load(),
 	}, nil
 }
@@ -108,8 +115,10 @@ func (s *Server) upgrade(w http.ResponseWriter, r *http.Request) (*Session, erro
 type Session struct {
 	ws     *websocketServer
 	logger *slog.Logger
+	opts   ServerOpts
+	cfg    Config
 
-	cfg Config
+	state atomic.Uint32
 }
 
 // Start starts the server.
@@ -140,37 +149,107 @@ var (
 	errInvalidSecret    = fmt.Errorf("invalid secret")
 )
 
-func (s *Session) mainLoop(ctx context.Context) error {
-	var authenticated bool
+type sessionState = uint32
 
+const (
+	stateInitial sessionState = iota
+	stateAuthenticated
+)
+
+func (s *Session) mainLoop(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 
 		case msg := <-s.ws.Messages:
-			// Assert that the client is authenticated.
-			// Kick the client if not.
-			if !authenticated {
-				auth := msg.GetAuthenticate()
-				if auth == nil {
-					return errNotAuthenticated
-				}
+			if auth := msg.GetAuthenticate(); auth != nil {
 				if auth.Secret != s.cfg.Secret {
+					ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+					defer cancel()
+
+					s.ws.Send(ctx, &christmaspb.LEDServerMessage{
+						Message: &christmaspb.LEDServerMessage_Authenticate{
+							Authenticate: &christmaspb.AuthenticateResponse{
+								Success: false,
+							},
+						},
+					})
+
 					return errInvalidSecret
 				}
-				authenticated = true
+
+				if !s.state.CompareAndSwap(stateInitial, stateAuthenticated) {
+					return fmt.Errorf("already authenticated")
+				}
+
+				s.ws.Send(ctx, &christmaspb.LEDServerMessage{
+					Message: &christmaspb.LEDServerMessage_Authenticate{
+						Authenticate: &christmaspb.AuthenticateResponse{
+							Success: true,
+						},
+					},
+				})
 
 				s.logger.DebugContext(ctx,
 					"new client authenticated")
+				continue
 			}
 
-			// switch msg := msg.GetMessage().(type) {
-			// case *christmaspb.LEDClientMessage_GetLedCanvasInfo:
-			// case *christmaspb.LEDClientMessage_SetLedCanvas:
-			// case *christmaspb.LEDClientMessage_GetLeds:
-			// case *christmaspb.LEDClientMessage_SetLeds:
-			// }
+			if s.state.Load() != stateAuthenticated {
+				return errNotAuthenticated
+			}
+
+			switch msg := msg.GetMessage().(type) {
+			case *christmaspb.LEDClientMessage_GetLeds:
+				ctLEDs := s.opts.LEDController.LEDs()
+				pbLEDs := make([]uint32, len(ctLEDs))
+				for i, led := range ctLEDs {
+					pbLEDs[i] = led.ToUint()
+				}
+				s.ws.Send(ctx, &christmaspb.LEDServerMessage{
+					Message: &christmaspb.LEDServerMessage_GetLeds{
+						GetLeds: &christmaspb.GetLEDsResponse{
+							Leds: pbLEDs,
+						},
+					},
+				})
+
+			case *christmaspb.LEDClientMessage_SetLeds:
+				pbLEDs := msg.SetLeds.GetLeds()
+				ctLEDs := make([]xcolor.RGB, len(pbLEDs))
+				for i, led := range pbLEDs {
+					ctLEDs[i] = xcolor.RGBFromUint(led)
+				}
+				if err := s.opts.LEDController.SetLEDs(ctLEDs); err != nil {
+					return fmt.Errorf("failed to set LEDs: %w", err)
+				}
+
+			case *christmaspb.LEDClientMessage_GetLedCanvasInfo:
+				w, h := s.opts.LEDController.ImageSize()
+				s.ws.Send(ctx, &christmaspb.LEDServerMessage{
+					Message: &christmaspb.LEDServerMessage_GetLedCanvasInfo{
+						GetLedCanvasInfo: &christmaspb.GetLEDCanvasInfoResponse{
+							Width:  uint32(w),
+							Height: uint32(h),
+						},
+					},
+				})
+
+			case *christmaspb.LEDClientMessage_SetLedCanvas:
+				w, h := s.opts.LEDController.ImageSize()
+				img := &image.RGBA{
+					Rect:   image.Rect(0, 0, w, h),
+					Stride: w * 4,
+					Pix:    msg.SetLedCanvas.GetPixels().GetPixels(),
+				}
+				if len(img.Pix) != w*h*4 {
+					return fmt.Errorf("invalid image size")
+				}
+				if err := s.opts.LEDController.DrawImage(img); err != nil {
+					return fmt.Errorf("failed to draw image: %w", err)
+				}
+			}
 		}
 	}
 }
