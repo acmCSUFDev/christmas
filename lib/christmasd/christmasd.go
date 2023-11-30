@@ -78,7 +78,7 @@ func (s *Server) SetConfig(cfg Config) {
 
 // ServeHTTP implements http.Handler.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	session, err := s.upgrade(w, r)
+	session, err := SessionUpgrade(w, r, *s.cfg.Load(), s.opts)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -94,22 +94,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) upgrade(w http.ResponseWriter, r *http.Request) (*Session, error) {
-	wsconn, _, _, err := s.opts.HTTPUpgrader.Upgrade(r, w)
-	if err != nil {
-		return nil, fmt.Errorf("failed to upgrade HTTP: %w", err)
-	}
-
-	logger := s.opts.Logger.With("addr", wsconn.RemoteAddr())
-
-	return &Session{
-		ws:     newWebsocketServer(wsconn, logger),
-		logger: logger,
-		opts:   s.opts,
-		cfg:    *s.cfg.Load(),
-	}, nil
-}
-
 // Session is a websocket session. It implements handling of messages from a
 // single client.
 type Session struct {
@@ -119,6 +103,23 @@ type Session struct {
 	cfg    Config
 
 	state atomic.Uint32
+}
+
+// SessionUpgrade upgrades an HTTP request to a websocket session.
+func SessionUpgrade(w http.ResponseWriter, r *http.Request, cfg Config, opts ServerOpts) (*Session, error) {
+	wsconn, _, _, err := opts.HTTPUpgrader.Upgrade(r, w)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upgrade HTTP: %w", err)
+	}
+
+	logger := opts.Logger.With("addr", wsconn.RemoteAddr())
+
+	return &Session{
+		ws:     newWebsocketServer(wsconn, logger),
+		logger: logger,
+		opts:   opts,
+		cfg:    cfg,
+	}, nil
 }
 
 // Start starts the server.
