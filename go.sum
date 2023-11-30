@@ -84,6 +84,8 @@ google.golang.org/protobuf v1.31.0 h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs
 google.golang.org/protobuf v1.31.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 gopkg.in/typ.v4 v4.3.0 h1:PEQtVIdhjOo4sOLnqpuEYrfSsul+a85EBGHS7tDJFuU=
 gopkg.in/typ.v4 v4.3.0/go.mod h1:wolXe8DlewxRCjA7SOiT3zjrZ0eQJZcr8cmV6bQWJUM=
+libdb.so/hrt v0.0.0-20230610032842-abf58de78776 h1:nXNfGnVJBfgDcyK0WnV2eddf7iDuim3zIG0tAH7RYH0=
+libdb.so/hrt v0.0.0-20230610032842-abf58de78776/go.mod h1:bb65zhEyvKd/8UegarizeNQIXCLt+1TC7CYWIJWTfRQ=
 libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5 h1:EoO8WHF7uWQuvqBRgnt0wsvG9u7gOVllHBP7l2YOsAA=
 libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5/go.mod h1:ZGoXSA4bL8Czb67YFYN3Uiy7Hvind5RhMSQgU6k4sq8=
 libdb.so/ledctl v0.0.0-20231130111553-25f5f20677f5 h1:aaxpbuDEFXg6f4W2R4vehCgXFuHgBNT4IHOARQ49P2M=

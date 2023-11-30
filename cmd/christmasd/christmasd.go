@@ -102,8 +102,11 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		Logger:        logger.With("component", "server"),
 	})
 
+	admin := newAdminHandler(server)
+
 	r := chi.NewRouter()
 	r.Handle("/ws", server)
+	r.Mount("/admin", admin)
 
 	r.Get("/led-points.csv", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/csv")
@@ -111,12 +114,6 @@ func run(ctx context.Context, logger *slog.Logger) error {
 
 		csvw := csv.NewWriter(w)
 		csvutil.Marshal(csvw, ledCoords)
-	})
-
-	r.Route("/admin", func(r chi.Router) {
-		r.Patch("/config", func(w http.ResponseWriter, r *http.Request) {
-			// TODO
-		})
 	})
 
 	return hserve.ListenAndServe(ctx, httpAddr, r)
