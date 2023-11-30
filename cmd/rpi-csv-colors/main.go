@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/Jon-Bright/ledctl/pixarray"
 	"libdb.so/acm-christmas/internal/csvutil"
 	"libdb.so/acm-christmas/internal/xcolor"
+	"libdb.so/ledctl"
 )
 
 func main() {
@@ -38,24 +38,20 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	strip, err := pixarray.NewWS281x(
-		len(colors),  // LEDs
-		3,            // 3 bytes per pixel
-		pixarray.RGB, // RGB channel order
-		800000,       // 800 KHz
-		10,           // DMA 10
-		[]int{12},    // GPIO 18
-	)
+	strip, err := ledctl.NewWS281x(ledctl.WS281xConfig{
+		NumPixels:    len(colors),
+		ColorOrder:   ledctl.BGROrder,
+		ColorModel:   ledctl.RGBModel,
+		PWMFrequency: 800000,
+		DMAChannel:   10,
+		GPIOPins:     []int{12},
+	})
 	if err != nil {
 		log.Fatalln("failed to create pixarray:", err)
 	}
 
 	for i, color := range colors {
-		strip.SetPixel(i, pixarray.Pixel{
-			R: int(color.R),
-			G: int(color.G),
-			B: int(color.B),
-		})
+		strip.SetRGBAt(i, ledctl.RGB(color))
 	}
 
 	ticker := time.NewTicker(500 * time.Millisecond)
@@ -66,7 +62,7 @@ func main() {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if err := strip.Write(); err != nil {
+			if err := strip.Flush(); err != nil {
 				log.Fatalln("failed to write pixels:", err)
 			}
 		}
