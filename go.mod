@@ -7,6 +7,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/fogleman/poissondisc v0.0.0-20190923201222-9b82984c50c5
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/gobwas/ws v1.3.1
 	github.com/google/go-cmp v0.5.8
 	github.com/joho/godotenv v1.5.1
@@ -21,6 +22,7 @@ require (
 	golang.org/x/sync v0.1.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/typ.v4 v4.3.0
+	libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5
 	libdb.so/ledctl v0.0.0-20231130111553-25f5f20677f5
 )
 

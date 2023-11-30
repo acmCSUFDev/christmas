@@ -2,27 +2,34 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
 	"image"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/pflag"
 	"libdb.so/acm-christmas/internal/csvutil"
+	"libdb.so/acm-christmas/lib/christmasd"
+	"libdb.so/hserve"
 	"libdb.so/ledctl"
 )
 
 var (
+	httpAddr     = ":8080"
 	ledPointsCSV = "led-points.csv"
 	canvasPPI    = 72.0
 	verbose      = false
 )
 
 func init() {
+	pflag.StringVarP(&httpAddr, "http-addr", "a", httpAddr, "HTTP server address")
 	pflag.StringVar(&ledPointsCSV, "led-points", ledPointsCSV, "CSV file of LED points")
 	pflag.Float64Var(&canvasPPI, "canvas-ppi", canvasPPI, "canvas PPI")
 	pflag.BoolVarP(&verbose, "verbose", "v", verbose, "verbose logging")
@@ -83,11 +90,34 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		LEDCoords:  ledCoords,
 		FrameRate:  frameRate,
 		CanvasPPI:  canvasPPI,
-		Logger:     logger,
+		Logger:     logger.With("component", "led-controller"),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create a LED controller: %v", err)
 	}
 
-	return nil
+	serverConfig := christmasd.Config{}
+	server := christmasd.NewServer(serverConfig, christmasd.ServerOpts{
+		LEDController: controller,
+		Logger:        logger.With("component", "server"),
+	})
+
+	r := chi.NewRouter()
+	r.Handle("/ws", server)
+
+	r.Get("/led-points.csv", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/csv")
+		w.Header().Set("Content-Disposition", "attachment; filename=led-points.csv")
+
+		csvw := csv.NewWriter(w)
+		csvutil.Marshal(csvw, ledCoords)
+	})
+
+	r.Route("/admin", func(r chi.Router) {
+		r.Patch("/config", func(w http.ResponseWriter, r *http.Request) {
+			// TODO
+		})
+	})
+
+	return hserve.ListenAndServe(ctx, httpAddr, r)
 }

@@ -10,6 +10,8 @@ github.com/edsrzf/mmap-go v1.0.0 h1:CEBF7HpRnUCSJgGUb5h1Gm7e3VkmVDrR8lvWVLtrOFw=
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
 github.com/fogleman/poissondisc v0.0.0-20190923201222-9b82984c50c5 h1:tMj+OgNbdN8AYbdK3CQSnBUDsoDckkNoU45w26iPTP8=
 github.com/fogleman/poissondisc v0.0.0-20190923201222-9b82984c50c5/go.mod h1:h1KpvovnFz2KYZqeagyCfHVwxLKri6UFqsg472bYvbY=
+github.com/go-chi/chi/v5 v5.0.10 h1:rLz5avzKpjqxrYwXNfmjkrYYXOyLJd37pz53UFHC6vk=
+github.com/go-chi/chi/v5 v5.0.10/go.mod h1:DslCQbL2OYiznFReuXYUmQ2hGd1aDpCnlMNITLSKoi8=
 github.com/gobwas/httphead v0.1.0 h1:exrUm0f4YX0L7EBwZHuCF4GDp8aJfVeBrlLQrs6NqWU=
 github.com/gobwas/httphead v0.1.0/go.mod h1:O/RXo79gxV8G+RqlR/otEwx4Q36zl9rqC5u12GKvMCM=
 github.com/gobwas/pool v0.2.1 h1:xfeeEhW7pwmX8nuLVlqbzVc7udMDrwetjEv+TZIz1og=
@@ -82,5 +84,7 @@ google.golang.org/protobuf v1.31.0 h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs
 google.golang.org/protobuf v1.31.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 gopkg.in/typ.v4 v4.3.0 h1:PEQtVIdhjOo4sOLnqpuEYrfSsul+a85EBGHS7tDJFuU=
 gopkg.in/typ.v4 v4.3.0/go.mod h1:wolXe8DlewxRCjA7SOiT3zjrZ0eQJZcr8cmV6bQWJUM=
+libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5 h1:EoO8WHF7uWQuvqBRgnt0wsvG9u7gOVllHBP7l2YOsAA=
+libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5/go.mod h1:ZGoXSA4bL8Czb67YFYN3Uiy7Hvind5RhMSQgU6k4sq8=
 libdb.so/ledctl v0.0.0-20231130111553-25f5f20677f5 h1:aaxpbuDEFXg6f4W2R4vehCgXFuHgBNT4IHOARQ49P2M=
 libdb.so/ledctl v0.0.0-20231130111553-25f5f20677f5/go.mod h1:slhFBGUfszv/aR8zzeY6m0DxiqVxEi82T8gW4OJAkzw=
