@@ -19,15 +19,11 @@ type WSCloseEvent = {
 
 export class Client extends Emitter<Events> {
   private ws: WebSocket | null;
-  private url: string;
   private openPromise: Promise<void> = Promise.resolve();
 
-  constructor(public readonly address: string) {
+  constructor(public readonly url: string) {
     super();
-    console.log("connecting to", address);
-
     this.ws = null;
-    this.url = `ws://${address}/ws`;
   }
 
   // connect connects to the server and authenticates with the given secret.
