@@ -65,17 +65,15 @@ message GetLEDsRequest {
 
 message GetLEDsResponse {
   // A 1D array of colors. The number of colors matches the number of LEDs.
-  repeated Color leds = 1;
+  // Each color is represented as 0xRRGGBB.
+  repeated fixed32 leds = 1;
 }
 
 message SetLEDsRequest {
   // A 1D array of colors. The number of colors must match the number of LEDs.
+  // Eaech color is represented as 0xRRGGBB.
   // To get the number of LEDs, call GetLEDs.
-  repeated Color leds = 1;
-}
-
-message Color {
-  fixed64 rgb = 1; // 0xRRGGBB
+  repeated fixed32 leds = 1;
 }
 
 message GetLEDCanvasInfoRequest {

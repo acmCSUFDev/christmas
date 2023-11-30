@@ -1,5 +1,4 @@
 /* eslint-disable */
-import Long from "long";
 import _m0 from "protobufjs/minimal.js";
 
 export const protobufPackage = "christmas";
@@ -78,21 +77,20 @@ export interface GetLEDsRequest {
 }
 
 export interface GetLEDsResponse {
-  /** A 1D array of colors. The number of colors matches the number of LEDs. */
-  leds: Color[];
+  /**
+   * A 1D array of colors. The number of colors matches the number of LEDs.
+   * Each color is represented as 0xRRGGBB.
+   */
+  leds: number[];
 }
 
 export interface SetLEDsRequest {
   /**
    * A 1D array of colors. The number of colors must match the number of LEDs.
+   * Eaech color is represented as 0xRRGGBB.
    * To get the number of LEDs, call GetLEDs.
    */
-  leds: Color[];
-}
-
-export interface Color {
-  /** 0xRRGGBB */
-  rgb: number;
+  leds: number[];
 }
 
 export interface GetLEDCanvasInfoRequest {
@@ -533,9 +531,11 @@ function createBaseGetLEDsResponse(): GetLEDsResponse {
 
 export const GetLEDsResponse = {
   encode(message: GetLEDsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    writer.uint32(10).fork();
     for (const v of message.leds) {
-      Color.encode(v!, writer.uint32(10).fork()).ldelim();
+      writer.fixed32(v);
     }
+    writer.ldelim();
     return writer;
   },
 
@@ -547,12 +547,22 @@ export const GetLEDsResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
-            break;
+          if (tag === 13) {
+            message.leds.push(reader.fixed32());
+
+            continue;
           }
 
-          message.leds.push(Color.decode(reader, reader.uint32()));
-          continue;
+          if (tag === 10) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.leds.push(reader.fixed32());
+            }
+
+            continue;
+          }
+
+          break;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -563,13 +573,13 @@ export const GetLEDsResponse = {
   },
 
   fromJSON(object: any): GetLEDsResponse {
-    return { leds: globalThis.Array.isArray(object?.leds) ? object.leds.map((e: any) => Color.fromJSON(e)) : [] };
+    return { leds: globalThis.Array.isArray(object?.leds) ? object.leds.map((e: any) => globalThis.Number(e)) : [] };
   },
 
   toJSON(message: GetLEDsResponse): unknown {
     const obj: any = {};
     if (message.leds?.length) {
-      obj.leds = message.leds.map((e) => Color.toJSON(e));
+      obj.leds = message.leds.map((e) => Math.round(e));
     }
     return obj;
   },
@@ -579,7 +589,7 @@ export const GetLEDsResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<GetLEDsResponse>, I>>(object: I): GetLEDsResponse {
     const message = createBaseGetLEDsResponse();
-    message.leds = object.leds?.map((e) => Color.fromPartial(e)) || [];
+    message.leds = object.leds?.map((e) => e) || [];
     return message;
   },
 };
@@ -590,9 +600,11 @@ function createBaseSetLEDsRequest(): SetLEDsRequest {
 
 export const SetLEDsRequest = {
   encode(message: SetLEDsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    writer.uint32(10).fork();
     for (const v of message.leds) {
-      Color.encode(v!, writer.uint32(10).fork()).ldelim();
+      writer.fixed32(v);
     }
+    writer.ldelim();
     return writer;
   },
 
@@ -604,12 +616,22 @@ export const SetLEDsRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
-            break;
+          if (tag === 13) {
+            message.leds.push(reader.fixed32());
+
+            continue;
           }
 
-          message.leds.push(Color.decode(reader, reader.uint32()));
-          continue;
+          if (tag === 10) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.leds.push(reader.fixed32());
+            }
+
+            continue;
+          }
+
+          break;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -620,13 +642,13 @@ export const SetLEDsRequest = {
   },
 
   fromJSON(object: any): SetLEDsRequest {
-    return { leds: globalThis.Array.isArray(object?.leds) ? object.leds.map((e: any) => Color.fromJSON(e)) : [] };
+    return { leds: globalThis.Array.isArray(object?.leds) ? object.leds.map((e: any) => globalThis.Number(e)) : [] };
   },
 
   toJSON(message: SetLEDsRequest): unknown {
     const obj: any = {};
     if (message.leds?.length) {
-      obj.leds = message.leds.map((e) => Color.toJSON(e));
+      obj.leds = message.leds.map((e) => Math.round(e));
     }
     return obj;
   },
@@ -636,64 +658,7 @@ export const SetLEDsRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<SetLEDsRequest>, I>>(object: I): SetLEDsRequest {
     const message = createBaseSetLEDsRequest();
-    message.leds = object.leds?.map((e) => Color.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseColor(): Color {
-  return { rgb: 0 };
-}
-
-export const Color = {
-  encode(message: Color, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.rgb !== 0) {
-      writer.uint32(9).fixed64(message.rgb);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Color {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseColor();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 9) {
-            break;
-          }
-
-          message.rgb = longToNumber(reader.fixed64() as Long);
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Color {
-    return { rgb: isSet(object.rgb) ? globalThis.Number(object.rgb) : 0 };
-  },
-
-  toJSON(message: Color): unknown {
-    const obj: any = {};
-    if (message.rgb !== 0) {
-      obj.rgb = Math.round(message.rgb);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Color>, I>>(base?: I): Color {
-    return Color.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Color>, I>>(object: I): Color {
-    const message = createBaseColor();
-    message.rgb = object.rgb ?? 0;
+    message.leds = object.leds?.map((e) => e) || [];
     return message;
   },
 };
@@ -967,18 +932,6 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function longToNumber(long: Long): number {
-  if (long.gt(globalThis.Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  return long.toNumber();
-}
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
