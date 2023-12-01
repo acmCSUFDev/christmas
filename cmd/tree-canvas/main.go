@@ -17,11 +17,11 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 
+	"dev.acmcsuf.com/christmas/lib/csvutil"
+	"dev.acmcsuf.com/christmas/lib/leddraw"
+	"dev.acmcsuf.com/christmas/lib/xdraw"
 	"github.com/disintegration/imaging"
 	"github.com/spf13/pflag"
-	"dev.acmcsuf.com/christmas/internal/csvutil"
-	"dev.acmcsuf.com/christmas/internal/xdraw"
-	"dev.acmcsuf.com/christmas/lib/leddraw"
 
 	_ "golang.org/x/image/bmp"
 )

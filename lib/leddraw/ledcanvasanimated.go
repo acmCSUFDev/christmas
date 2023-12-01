@@ -6,7 +6,7 @@ import (
 	"image"
 	"sync"
 
-	"dev.acmcsuf.com/christmas/internal/animation"
+	"dev.acmcsuf.com/christmas/lib/animation"
 )
 
 // LEDCanvas wraps an LEDCanvas and provides animation capabilities.

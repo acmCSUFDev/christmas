@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
+	"dev.acmcsuf.com/christmas/lib/livecapture"
+	"dev.acmcsuf.com/christmas/lib/quoted"
 	"github.com/joho/godotenv"
 	"github.com/spf13/pflag"
-	"dev.acmcsuf.com/christmas/internal/quoted"
-	"dev.acmcsuf.com/christmas/lib/livecapture"
 )
 
 var (

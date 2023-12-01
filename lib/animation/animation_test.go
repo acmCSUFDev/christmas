@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"dev.acmcsuf.com/christmas/lib/intmath"
 	"github.com/alecthomas/assert/v2"
-	"dev.acmcsuf.com/christmas/internal/intmath"
 )
 
 type testFrame struct {

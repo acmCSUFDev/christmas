@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
+	"dev.acmcsuf.com/christmas/lib/intmath"
 	"github.com/Jon-Bright/ledctl/pixarray"
-	"dev.acmcsuf.com/christmas/internal/intmath"
 )
 
 const wormSpeed = 200 * time.Millisecond

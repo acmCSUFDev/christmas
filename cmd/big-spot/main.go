@@ -17,12 +17,12 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 
+	"dev.acmcsuf.com/christmas/lib/csvutil"
+	"dev.acmcsuf.com/christmas/lib/vision"
+	"dev.acmcsuf.com/christmas/lib/xdraw"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"golang.org/x/sync/errgroup"
-	"dev.acmcsuf.com/christmas/internal/csvutil"
-	"dev.acmcsuf.com/christmas/internal/xdraw"
-	"dev.acmcsuf.com/christmas/lib/vision"
 
 	_ "golang.org/x/image/bmp"
 )

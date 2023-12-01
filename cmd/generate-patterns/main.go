@@ -8,8 +8,8 @@ import (
 	"os"
 	"sort"
 
+	"dev.acmcsuf.com/christmas/lib/csvutil"
 	"github.com/spf13/pflag"
-	"dev.acmcsuf.com/christmas/internal/csvutil"
 )
 
 var (
