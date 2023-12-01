@@ -1,6 +1,8 @@
 package xcolor
 
 import (
+	"encoding/json"
+	"fmt"
 	"image"
 	"image/color"
 )
@@ -44,6 +46,15 @@ func RGBFromUint(u uint32) RGB {
 	}
 }
 
+// RGBFromString converts a string to RGB.
+func RGBFromString(s string) (RGB, error) {
+	var c RGB
+	if _, err := fmt.Sscanf(s, "#%02x%02x%02x", &c.R, &c.G, &c.B); err != nil {
+		return RGB{}, err
+	}
+	return c, nil
+}
+
 // RGBA implements the color.Color interface.
 func (c RGB) RGBA() (r, g, b, a uint32) {
 	r = uint32(c.R)
@@ -59,4 +70,31 @@ func (c RGB) RGBA() (r, g, b, a uint32) {
 // ToUint converts the RGB color to an integer.
 func (c RGB) ToUint() uint32 {
 	return uint32(c.R)<<16 | uint32(c.G)<<8 | uint32(c.B)
+}
+
+// String implements the fmt.Stringer interface.
+// It returns the color in hexadecimal notation.
+func (c RGB) String() string {
+	return fmt.Sprintf("#%02x%02x%02x", c.R, c.G, c.B)
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+// It marshals RGB as an integer.
+func (c RGB) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+// It unmarshals an integer as RGB.
+func (c *RGB) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	x, err := RGBFromString(s)
+	if err != nil {
+		return err
+	}
+	*c = x
+	return nil
 }

@@ -158,6 +158,9 @@ const (
 )
 
 func (s *Session) mainLoop(ctx context.Context) error {
+	bufPbLED := make([]uint32, len(s.opts.LEDController.LEDs()))
+	bufCtLED := make([]xcolor.RGB, len(s.opts.LEDController.LEDs()))
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -204,25 +207,26 @@ func (s *Session) mainLoop(ctx context.Context) error {
 			switch msg := msg.GetMessage().(type) {
 			case *christmaspb.LEDClientMessage_GetLeds:
 				ctLEDs := s.opts.LEDController.LEDs()
-				pbLEDs := make([]uint32, len(ctLEDs))
 				for i, led := range ctLEDs {
-					pbLEDs[i] = led.ToUint()
+					bufPbLED[i] = led.ToUint()
 				}
 				s.ws.Send(ctx, &christmaspb.LEDServerMessage{
 					Message: &christmaspb.LEDServerMessage_GetLeds{
 						GetLeds: &christmaspb.GetLEDsResponse{
-							Leds: pbLEDs,
+							Leds: bufPbLED,
 						},
 					},
 				})
 
 			case *christmaspb.LEDClientMessage_SetLeds:
 				pbLEDs := msg.SetLeds.GetLeds()
-				ctLEDs := make([]xcolor.RGB, len(pbLEDs))
-				for i, led := range pbLEDs {
-					ctLEDs[i] = xcolor.RGBFromUint(led)
+				if len(pbLEDs) != len(bufCtLED) {
+					return fmt.Errorf("invalid number of LEDs: %d", len(pbLEDs))
 				}
-				if err := s.opts.LEDController.SetLEDs(ctLEDs); err != nil {
+				for i, led := range pbLEDs {
+					bufCtLED[i] = xcolor.RGBFromUint(led)
+				}
+				if err := s.opts.LEDController.SetLEDs(bufCtLED); err != nil {
 					return fmt.Errorf("failed to set LEDs: %w", err)
 				}
 
@@ -239,7 +243,7 @@ func (s *Session) mainLoop(ctx context.Context) error {
 
 			case *christmaspb.LEDClientMessage_SetLedCanvas:
 				w, h := s.opts.LEDController.ImageSize()
-				img := &image.RGBA{
+				img := image.RGBA{
 					Rect:   image.Rect(0, 0, w, h),
 					Stride: w * 4,
 					Pix:    msg.SetLedCanvas.GetPixels().GetPixels(),
@@ -247,7 +251,7 @@ func (s *Session) mainLoop(ctx context.Context) error {
 				if len(img.Pix) != w*h*4 {
 					return fmt.Errorf("invalid image size")
 				}
-				if err := s.opts.LEDController.DrawImage(img); err != nil {
+				if err := s.opts.LEDController.DrawImage(&img); err != nil {
 					return fmt.Errorf("failed to draw image: %w", err)
 				}
 			}
