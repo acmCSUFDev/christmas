@@ -18,10 +18,10 @@ import (
 	"github.com/fogleman/poissondisc"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	"libdb.so/acm-christmas/internal/csvutil"
-	"libdb.so/acm-christmas/internal/intmath"
-	"libdb.so/acm-christmas/internal/xdraw"
-	"libdb.so/acm-christmas/lib/vision"
+	"dev.acmcsuf.com/christmas/internal/csvutil"
+	"dev.acmcsuf.com/christmas/internal/intmath"
+	"dev.acmcsuf.com/christmas/internal/xdraw"
+	"dev.acmcsuf.com/christmas/lib/vision"
 
 	_ "golang.org/x/image/bmp"
 )

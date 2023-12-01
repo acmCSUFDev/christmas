@@ -3,7 +3,7 @@ package xcolor
 import (
 	"math"
 
-	"libdb.so/acm-christmas/internal/intmath"
+	"dev.acmcsuf.com/christmas/internal/intmath"
 )
 
 // AveragingPoint is a point that is used to average a slice of colors into a

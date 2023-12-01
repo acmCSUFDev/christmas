@@ -6,7 +6,7 @@ import (
 	"image"
 	"sync"
 
-	"libdb.so/acm-christmas/internal/animation"
+	"dev.acmcsuf.com/christmas/internal/animation"
 )
 
 // LEDCanvas wraps an LEDCanvas and provides animation capabilities.

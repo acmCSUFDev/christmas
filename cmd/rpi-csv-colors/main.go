@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
-	"libdb.so/acm-christmas/internal/csvutil"
-	"libdb.so/acm-christmas/internal/xcolor"
+	"dev.acmcsuf.com/christmas/internal/csvutil"
+	"dev.acmcsuf.com/christmas/internal/xcolor"
 	"libdb.so/ledctl"
 )
 

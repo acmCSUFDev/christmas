@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"strconv"
 
-	"libdb.so/acm-christmas/lib/ffutil"
+	"dev.acmcsuf.com/christmas/lib/ffutil"
 )
 
 func threshold(ctx context.Context, args [2]string) error {

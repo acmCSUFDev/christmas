@@ -3,7 +3,7 @@ package leddraw
 import (
 	"image/color"
 
-	"libdb.so/acm-christmas/internal/xcolor"
+	"dev.acmcsuf.com/christmas/internal/xcolor"
 )
 
 // LEDStrip is a strip of LEDs. It is represented as a slice of colors, where

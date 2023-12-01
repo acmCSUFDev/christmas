@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/assert/v2"
-	"libdb.so/acm-christmas/internal/intmath"
+	"dev.acmcsuf.com/christmas/internal/intmath"
 )
 
 type testFrame struct {

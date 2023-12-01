@@ -5,8 +5,8 @@ import (
 	"image"
 	"math"
 
-	"libdb.so/acm-christmas/internal/intmath"
-	"libdb.so/acm-christmas/internal/xcolor"
+	"dev.acmcsuf.com/christmas/internal/intmath"
+	"dev.acmcsuf.com/christmas/internal/xcolor"
 )
 
 // LEDCanvas is a canvas of LED points.

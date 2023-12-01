@@ -13,8 +13,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/pflag"
-	"libdb.so/acm-christmas/internal/quoted"
-	"libdb.so/acm-christmas/lib/livecapture"
+	"dev.acmcsuf.com/christmas/internal/quoted"
+	"dev.acmcsuf.com/christmas/lib/livecapture"
 )
 
 var (

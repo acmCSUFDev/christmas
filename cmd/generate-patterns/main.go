@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	"github.com/spf13/pflag"
-	"libdb.so/acm-christmas/internal/csvutil"
+	"dev.acmcsuf.com/christmas/internal/csvutil"
 )
 
 var (

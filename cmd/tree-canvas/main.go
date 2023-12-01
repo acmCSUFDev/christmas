@@ -19,9 +19,9 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/spf13/pflag"
-	"libdb.so/acm-christmas/internal/csvutil"
-	"libdb.so/acm-christmas/internal/xdraw"
-	"libdb.so/acm-christmas/lib/leddraw"
+	"dev.acmcsuf.com/christmas/internal/csvutil"
+	"dev.acmcsuf.com/christmas/internal/xdraw"
+	"dev.acmcsuf.com/christmas/lib/leddraw"
 
 	_ "golang.org/x/image/bmp"
 )
