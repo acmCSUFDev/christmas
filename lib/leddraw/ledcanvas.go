@@ -105,9 +105,7 @@ func NewLEDCanvas(ledPositions []image.Point, opts LEDCanvasOpts) (*LEDCanvas, e
 		opts.PPI = 128
 	}
 	if opts.Intensity == nil {
-		minDist := FindMinDistance(ledPositions)
-		canvasScale := float64(canvasRect.Dx()) / float64(ledRect.Dx())
-		opts.Intensity = NewStepIntensity(minDist.Distance / 2 * canvasScale)
+		opts.Intensity = NewStepIntensity(1)
 	}
 	if opts.Average == nil {
 		opts.Average = xcolor.NewSquaredAveraging()
