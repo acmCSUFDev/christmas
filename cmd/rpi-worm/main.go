@@ -8,7 +8,7 @@ import (
 	"github.com/Jon-Bright/ledctl/pixarray"
 )
 
-const numLEDs = 100
+const numLEDs = 200
 
 const wormLength = 1
 const wormSpeed = 100 * time.Millisecond
