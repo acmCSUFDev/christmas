@@ -68,6 +68,10 @@ func main() {
 		log.Println("Output directory not specified, using", outputDir)
 	}
 
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		log.Fatalln("failed to create output directory:", err)
+	}
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
@@ -84,7 +88,7 @@ func extractFrames(ctx context.Context, inputFile, outputDir string) error {
 
 	// Calculate the number of frames (steps) between each LED update.
 	// TODO: don't round this, just count
-	frameStep := math.Round(float64(wormSpeed) / float64(frameDuration))
+	frameStep := float64(wormSpeed) / float64(frameDuration)
 
 	if addHalfStep {
 		startTime += Time(float64(frameDuration) * frameStep / 2)
@@ -92,31 +96,29 @@ func extractFrames(ctx context.Context, inputFile, outputDir string) error {
 
 	trimDuration := Time(float64(frameDuration) * frameStep * float64(numLEDs))
 
-	filter := fmt.Sprintf(`select=not(mod(n\,%f))`, frameStep)
+	filter := fmt.Sprintf(`select=not(mod(n\,%f))`, math.Round(frameStep))
 	if len(filters) > 0 {
 		filter += ","
 		filter += strings.Join(filters, ",")
 	}
 
+	if startFrame > 0 {
+		// Doing start frame in FFmpeg is kind of a pain, so we just
+		// calculate the start time and trim duration.
+		startTime = Time(float64(frameDuration) * float64(startFrame))
+	}
+
 	ffFlags := []string{
 		"-loglevel", "error",
 		"-hide_banner",
-	}
-
-	if startFrame >= 0 {
-		ffFlags = append(ffFlags, "-start_number", fmt.Sprintf("%d", startFrame))
-	} else {
-		ffFlags = append(ffFlags, "-ss", startTime.String())
-	}
-
-	ffFlags = append(ffFlags,
+		"-ss", startTime.String(),
 		"-t", trimDuration.String(),
 		"-i", inputFile,
 		"-vf", filter,
 		"-vsync", "vfr",
 		"-q:v", "1",
-		filepath.Join(outputDir, "frame-%05d.jpg"),
-	)
+		filepath.Join(outputDir, "frame-%05d.png"),
+	}
 
 	if _, err := run(ctx, "ffmpeg", ffFlags...); err != nil {
 		return fmt.Errorf("failed to extract frames: %w", err)

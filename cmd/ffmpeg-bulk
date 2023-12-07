@@ -12,6 +12,7 @@ main() {
 	outputPath="${@:$#}"
 
 	outputDir=$(dirname "$outputPath")
+	outputDir=$(realpath "$outputDir")
 	outputName=$(basename "$outputPath")
 
 	if [[ ! $outputName == *"?"* ]]; then
@@ -38,7 +39,6 @@ main() {
 		inputFiles[$i]="$name"
 	done
 
-	outputDir=$(realpath "$outputDir")
 	mkdir -p "$outputDir"
 
 	parallel -i ffmpeg \
@@ -47,7 +47,8 @@ main() {
 		-i "{}.$inputExt" \
 		"${ffmpegArgs[@]}" \
 		"$outputDir/$outputNamePrefix{}$outputNameSuffix" \
-		-- "${inputFiles[@]}"
+		-- "${inputFiles[@]}" |& \
+		tee /dev/stderr
 }
 
 log() {

@@ -130,7 +130,7 @@ func run(ctx context.Context) error {
 
 				result, err := processor.process(ctx, file)
 				if err != nil {
-					return fmt.Errorf("%s: %w", file, err)
+					log.Printf("%s: %s: !!! WARNING !!!: NO SPOT FOUND: %s", istr, file, err)
 				}
 
 				select {
@@ -177,6 +177,13 @@ func run(ctx context.Context) error {
 		return result[i].File < result[j].File
 	})
 
+	for i := range result {
+		if result[i].Spot.Area == 0 && i > 0 {
+			// If there is no spot, use the previous spot.
+			result[i] = result[i-1]
+		}
+	}
+
 	boundingBox := findBoundingBox(result)
 	// Translate all points to the top left corner of the bounding box.
 	for i := range result {
@@ -215,17 +222,17 @@ func createCSVOutput(results []processingResult) error {
 	log.Println("writing CSV file to", csvPath)
 
 	type record struct {
-		X    int
-		Y    int
-		Area int
+		X int
+		Y int
+		// Area int
 	}
 
 	records := make([]record, 0, len(results))
 	for _, r := range results {
 		records = append(records, record{
-			X:    r.Spot.Center.X,
-			Y:    r.Spot.Center.Y,
-			Area: r.Spot.Area,
+			X: r.Spot.Center.X,
+			Y: r.Spot.Center.Y,
+			// Area: r.Spot.Area,
 		})
 	}
 
@@ -284,7 +291,7 @@ func newProcessor() *processor {
 }
 
 func (p *processor) process(ctx context.Context, inputImage string) (processingResult, error) {
-	var result processingResult
+	result := processingResult{File: inputImage}
 
 	img, err := decodeImageFile(inputImage)
 	if err != nil {
@@ -298,7 +305,8 @@ func (p *processor) process(ctx context.Context, inputImage string) (processingR
 		return result, fmt.Errorf("failed to find biggest spot: %w", err)
 	}
 
-	return processingResult{File: inputImage, Spot: biggest}, nil
+	result.Spot = biggest
+	return result, nil
 }
 
 func decodeImageFile(path string) (image.Image, error) {
